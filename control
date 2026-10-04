@@ -1,0 +1,8 @@
+Package: com.dst.dstmods
+Name: DSTMods
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: External MOD directory bridge for Don’t Starve Together
+Maintainer: DSTMods
+Author: DSTMods
+Section: Tweaks
