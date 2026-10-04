@@ -1,8 +1,0 @@
-[project]
-name = "DSTMods"
-kind = "tweak"
-minimum_ios = "15.0"
-
-[theos]
-archs = ["arm64"]
-package_scheme = "rootless"
