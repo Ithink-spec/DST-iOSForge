@@ -1,0 +1,22 @@
+name: build-changmods
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile ChangMods.dylib
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          xcrun clang -arch arm64 -isysroot "$SDK" -miphoneos-version-min=14.0 \
+            -dynamiclib -O2 -fvisibility=hidden \
+            -install_name @executable_path/Frameworks/ChangMods.dylib \
+            -o ChangMods.dylib changmods.c
+          codesign -f -s - ChangMods.dylib
+          file ChangMods.dylib
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ChangMods
+          path: ChangMods.dylib
