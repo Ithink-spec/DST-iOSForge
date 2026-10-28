@@ -1,0 +1,54 @@
+name: build
+
+# 目标：把编译压到最小 ——单个 .c + 一条 clang 命令，不需要 Xcode 工程 / Scheme / 证书。
+#
+# 说明：之前失败的根因是 macOS 托管机「没抢到」：
+#   The job was not acquired by Runner of type hosted even after multiple attempts
+#   Internal server error. Correlation ID: …
+# 那是 GitHub 的 runner 池容量问题，跟仓库格式无关。
+# 这里的做法：
+#   1) 默认只排一个最常见的标签 macos-latest；
+#   2) 需要兜底时把 matrix 打开（macos-15 / macos-14 是两个不同的池）；
+#   3) 用 workflow_dispatch 手动也能跑。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - "changmods.c"
+      - "build.sh"
+      - ".github/workflows/build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # 想兜底就把下面三行换成 matrix 写法（见 README）
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          clang --version
+          xcrun --sdk iphoneos --show-sdk-version || true
+
+      - name: Build (iOS arm64 dylib)
+        run: |
+          chmod +x build.sh
+          ./build.sh ios
+
+      - name: Show result
+        run: |
+          file ChangMods.dylib
+          ls -lh ChangMods.dylib
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ChangMods-dylib
+          path: ChangMods.dylib
+          if-no-files-found: error
